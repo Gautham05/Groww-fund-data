@@ -3,9 +3,23 @@ from flask_cors import CORS
 from curl_cffi import requests as cffi_requests
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+import threading
+import time
 
 app = Flask(__name__)
 CORS(app)
+
+# ─── Self ping to prevent Render free tier sleep ───
+def keep_alive():
+    time.sleep(60)  # wait 1 min after startup before first ping
+    while True:
+        try:
+            cffi_requests.get('https://groww-fund-data.onrender.com/ping', timeout=10)
+        except:
+            pass
+        time.sleep(5 * 60)  # ping every 14 minutes
+
+threading.Thread(target=keep_alive, daemon=True).start()
 
 GROWW_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
