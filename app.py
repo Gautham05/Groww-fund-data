@@ -29,16 +29,30 @@ def groww():
     start_time = datetime.now(timezone.utc)
 
     try:
-        # ── Step 1: Find search_id using filter API pagination ──
-        # curl_cffi impersonates Chrome120 at TLS level — Groww sees real Chrome browser
-        # size=100 covers all 3403 Direct plan funds (size=50 only covered 2000 — was a bug)
-        # sort_by=3 = popularity sort — popular funds on page 0 = faster find
-        search_id    = None
-        fund_house   = None
-        sip_return1y = None
-        sip_return3y = None
-        sip_return5y = None
-        page         = 0
+        # Step 1 - find search_id using filter API pagination
+        # curl_cffi impersonates Chrome120 at TLS level - Groww sees real Chrome browser
+        # size=100 covers all 3403 Direct plan funds (size=50 only covered 2000 - was a bug)
+        # sort_by=3 = popularity sort - popular funds on page 0 = faster find
+        search_id          = None
+        fund_house         = None
+        fund_name          = None
+        scheme_name        = None
+        direct_scheme_name = None
+        scheme_type        = None
+        sub_category       = None
+        category           = None
+        nav_from_filter    = None
+        risk_from_filter   = None
+        risk_rating        = None
+        mean_return        = None
+        min_investment     = None
+        min_sip            = None
+        lumpsum_allowed    = None
+        sip_allowed        = None
+        sip_return1y       = None
+        sip_return3y       = None
+        sip_return5y       = None
+        page               = 0
 
         while page <= 40:
             r = cffi_requests.get(
@@ -62,11 +76,25 @@ def groww():
 
             match = next((f for f in funds if str(f.get('scheme_code')) == str(scheme_code)), None)
             if match:
-                search_id    = match['search_id']
-                fund_house   = match['fund_house']
-                sip_return1y = match.get('sip_return1y')
-                sip_return3y = match.get('sip_return3y')
-                sip_return5y = match.get('sip_return5y')
+                search_id          = match['search_id']
+                fund_house         = match['fund_house']
+                fund_name          = match.get('fund_name')
+                scheme_name        = match.get('scheme_name')
+                direct_scheme_name = match.get('direct_scheme_name')
+                scheme_type        = match.get('scheme_type')
+                sub_category       = match.get('sub_category')
+                category           = match.get('category')
+                nav_from_filter    = match.get('nav')
+                risk_from_filter   = match.get('risk')
+                risk_rating        = match.get('risk_rating')
+                mean_return        = match.get('mean_return')
+                min_investment     = match.get('min_investment_amount')
+                min_sip            = match.get('min_sip_investment')
+                lumpsum_allowed    = match.get('lumpsum_allowed')
+                sip_allowed        = match.get('sip_allowed')
+                sip_return1y       = match.get('sip_return1y')
+                sip_return3y       = match.get('sip_return3y')
+                sip_return5y       = match.get('sip_return5y')
                 break
             page += 1
 
@@ -77,9 +105,9 @@ def groww():
                 'code':          'NOT_FOUND'
             }), 404
 
-        # ── Step 2: Fetch scheme data + portfolio stats in parallel ──
-        # API A /v6/scheme/search/{search_id}          → holdings, returns, analysis, fund info
-        # API B /v1/scheme/portfolio/{code}/stats      → sector, PE, market cap, AUM
+        # Step 2 - fetch scheme data + portfolio stats in parallel
+        # API A /v6/scheme/search/{search_id}     → holdings, returns, analysis, fund info
+        # API B /v1/scheme/portfolio/{code}/stats → sector, PE, market cap, AUM
         # NOTE: data.stats in v6 = return comparison array NOT sector/PE data
         def fetch_scheme():
             return cffi_requests.get(
@@ -110,7 +138,7 @@ def groww():
         d  = r2.json()
         ps = r3.json()
 
-        # return_stats is always array — take [0]
+        # return_stats is always array - take [0]
         rs = d.get('return_stats', [{}])
         rs = rs[0] if isinstance(rs, list) else rs
 
@@ -146,6 +174,12 @@ def groww():
             'scheme_code':          scheme_code,
             'search_id':            search_id,
             'fund_house':           fund_house,
+            'fund_name':            fund_name,
+            'scheme_name':          scheme_name,
+            'direct_scheme_name':   direct_scheme_name,
+            'scheme_type':          scheme_type,
+            'sub_category':         sub_category,
+            'category':             category,
 
             # Holdings
             'equity_holdings':      equity_holdings,
@@ -201,9 +235,12 @@ def groww():
             'beta':                 rs.get('beta'),
             'alpha':                rs.get('alpha'),
             'std_dev':              rs.get('standard_deviation'),
-            'risk':                 rs.get('risk'),
+            'risk':                 risk_from_filter,
+            'risk_rating':          risk_rating,
+            'mean_return':          mean_return,
 
             # Fund Info
+            'nav':                  nav_from_filter,
             'expense_ratio':        d.get('expense_ratio'),
             'groww_rating':         d.get('groww_rating'),
             'exit_load':            d.get('exit_load'),
@@ -211,6 +248,10 @@ def groww():
             'fund_manager':         d.get('fund_manager'),
             'launch_date':          d.get('launch_date'),
             'isin':                 d.get('isin'),
+            'min_investment':       min_investment,
+            'min_sip':              min_sip,
+            'lumpsum_allowed':      lumpsum_allowed,
+            'sip_allowed':          sip_allowed,
 
             # Analysis
             'pros':                 [a['analysis_desc'] for a in d.get('analysis', []) if a.get('analysis_type') == 'PROS'],
