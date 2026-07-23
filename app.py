@@ -29,10 +29,6 @@ def groww():
     start_time = datetime.now(timezone.utc)
 
     try:
-        # Step 1 - find search_id using filter API pagination
-        # curl_cffi impersonates Chrome120 at TLS level - Groww sees real Chrome browser
-        # size=100 covers all 3403 Direct plan funds (size=50 only covered 2000 - was a bug)
-        # sort_by=3 = popularity sort - popular funds on page 0 = faster find
         search_id          = None
         fund_house         = None
         fund_name          = None
@@ -105,10 +101,6 @@ def groww():
                 'code':          'NOT_FOUND'
             }), 404
 
-        # Step 2 - fetch scheme data + portfolio stats in parallel
-        # API A /v6/scheme/search/{search_id}     → holdings, returns, analysis, fund info
-        # API B /v1/scheme/portfolio/{code}/stats → sector, PE, market cap, AUM
-        # NOTE: data.stats in v6 = return comparison array NOT sector/PE data
         def fetch_scheme():
             return cffi_requests.get(
                 f'https://groww.in/v1/api/data/mf/web/v6/scheme/search/{search_id}',
@@ -138,23 +130,11 @@ def groww():
         d  = r2.json()
         ps = r3.json()
 
-        # return_stats is always array - take [0]
         rs = d.get('return_stats', [{}])
         rs = rs[0] if isinstance(rs, list) else rs
 
-        # Split holdings by nature_name
-        all_holdings    = d.get('holdings', [])
-        equity_holdings = [
-            {
-                'company':      h['company_name'],
-                'sector':       h['sector_name'],
-                'corpus_per':   h['corpus_per'],
-                'market_value': h['market_value'],
-                'instrument':   h['instrument_name'],
-            }
-            for h in all_holdings if h.get('nature_name') == 'EQUITY'
-        ]
-        debt_holdings = [
+        # All holdings returned raw — no filtering by nature_name
+        all_holdings = [
             {
                 'company':      h['company_name'],
                 'nature':       h['nature_name'],
@@ -164,7 +144,7 @@ def groww():
                 'instrument':   h['instrument_name'],
                 'rating':       h.get('rating'),
             }
-            for h in all_holdings if h.get('nature_name') != 'EQUITY'
+            for h in d.get('holdings', [])
         ]
 
         elapsed_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
@@ -181,13 +161,12 @@ def groww():
             'sub_category':         sub_category,
             'category':             category,
 
-            # Holdings
-            'equity_holdings':      equity_holdings,
-            'debt_holdings':        debt_holdings,
+            # Holdings — all items, no filter, nature field tells EQUITY/DEBT/CASH
+            'holdings':             all_holdings,
             'total_holdings_count': len(all_holdings),
 
             # Portfolio Stats
-            'sector':               ps.get('equity_sector_per'),
+            'equity_sector':        ps.get('equity_sector_per'),
             'debt_sector':          ps.get('debt_sector_per'),
             'asset_allocation':     ps.get('asset_allocation'),
             'large_cap':            ps.get('large_cap'),
