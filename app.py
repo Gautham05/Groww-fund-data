@@ -150,97 +150,102 @@ def groww():
 
         elapsed_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
 
-        return jsonify({
-            # Identity
-            'scheme_code':          scheme_code,
-            'search_id':            search_id,
-            'fund_house':           fund_house,
-            'fund_name':            fund_name,
-            'scheme_name':          scheme_name,
-            'direct_scheme_name':   direct_scheme_name,
-            'scheme_type':          scheme_type,
-            'sub_category':         sub_category,
-            'category':             category,
+        from flask import Response
+        import json
+        return Response(
+            json.dumps({
+                # Identity
+                'scheme_code':          scheme_code,
+                'search_id':            search_id,
+                'fund_house':           fund_house,
+                'fund_name':            fund_name,
+                'scheme_name':          scheme_name,
+                'direct_scheme_name':   direct_scheme_name,
+                'scheme_type':          scheme_type,
+                'sub_category':         sub_category,
+                'category':             category,
 
-            # Holdings — all items, no filter, nature field tells EQUITY/DEBT/CASH
-            'holdings':             all_holdings,
-            'total_holdings_count': len(all_holdings),
+                # Holdings — all items, no filter, nature field tells EQUITY/DEBT/CASH
+                'holdings':             all_holdings,
+                'total_holdings_count': len(all_holdings),
 
-            # Portfolio Stats
-            'equity_sector':        ps.get('equity_sector_per'),
-            'debt_sector':          ps.get('debt_sector_per'),
-            'asset_allocation':     ps.get('asset_allocation'),
-            'large_cap':            ps.get('large_cap'),
-            'mid_cap':              ps.get('mid_cap'),
-            'small_cap':            ps.get('small_cap'),
-            'pe':                   ps.get('pe'),
-            'pb':                   ps.get('pb'),
-            'aum':                  ps.get('aum'),
-            'portfolio_turnover':   ps.get('portfolio_turnover'),
-            'total_holdings':       ps.get('total_holdings'),
-            'debt_per':             ps.get('debt_per'),
-            'equity_per':           ps.get('equity_per'),
-            'cash_per':             ps.get('cash_per'),
-            'average_maturity':     ps.get('average_maturity'),
-            'modified_duration':    ps.get('modified_duration'),
-            'yield_to_maturity':    ps.get('yield_to_maturity'),
+                # Portfolio Stats
+                'equity_sector':        ps.get('equity_sector_per'),
+                'debt_sector':          ps.get('debt_sector_per'),
+                'asset_allocation':     ps.get('asset_allocation'),
+                'large_cap':            ps.get('large_cap'),
+                'mid_cap':              ps.get('mid_cap'),
+                'small_cap':            ps.get('small_cap'),
+                'pe':                   ps.get('pe'),
+                'pb':                   ps.get('pb'),
+                'aum':                  ps.get('aum'),
+                'portfolio_turnover':   ps.get('portfolio_turnover'),
+                'total_holdings':       ps.get('total_holdings'),
+                'debt_per':             ps.get('debt_per'),
+                'equity_per':           ps.get('equity_per'),
+                'cash_per':             ps.get('cash_per'),
+                'average_maturity':     ps.get('average_maturity'),
+                'modified_duration':    ps.get('modified_duration'),
+                'yield_to_maturity':    ps.get('yield_to_maturity'),
 
-            # Returns
-            'return1d':             rs.get('return1d'),
-            'return1w':             rs.get('return1w'),
-            'return1m':             rs.get('return1m'),
-            'return3m':             rs.get('return3m'),
-            'return6m':             rs.get('return6m'),
-            'return1y':             rs.get('return1y'),
-            'return3y':             rs.get('return3y'),
-            'return5y':             rs.get('return5y'),
-            'return10y':            rs.get('return10y'),
+                # Returns
+                'return1d':             rs.get('return1d'),
+                'return1w':             rs.get('return1w'),
+                'return1m':             rs.get('return1m'),
+                'return3m':             rs.get('return3m'),
+                'return6m':             rs.get('return6m'),
+                'return1y':             rs.get('return1y'),
+                'return3y':             rs.get('return3y'),
+                'return5y':             rs.get('return5y'),
+                'return10y':            rs.get('return10y'),
 
-            # SIP Returns
-            'sip_return1y':         sip_return1y,
-            'sip_return3y':         sip_return3y,
-            'sip_return5y':         sip_return5y,
+                # SIP Returns
+                'sip_return1y':         sip_return1y,
+                'sip_return3y':         sip_return3y,
+                'sip_return5y':         sip_return5y,
 
-            # Category Comparison
-            'cat_return1y':         rs.get('cat_return1y'),
-            'cat_return3y':         rs.get('cat_return3y'),
-            'cat_return5y':         rs.get('cat_return5y'),
-            'rank1y':               rs.get('rank1yr'),
-            'rank3y':               rs.get('rank3yr'),
-            'rank5y':               rs.get('rank5yr'),
+                # Category Comparison
+                'cat_return1y':         rs.get('cat_return1y'),
+                'cat_return3y':         rs.get('cat_return3y'),
+                'cat_return5y':         rs.get('cat_return5y'),
+                'rank1y':               rs.get('rank1yr'),
+                'rank3y':               rs.get('rank3yr'),
+                'rank5y':               rs.get('rank5yr'),
 
-            # Risk Metrics
-            'sharpe':               rs.get('sharpe_ratio'),
-            'sortino':              rs.get('sortino_ratio'),
-            'beta':                 rs.get('beta'),
-            'alpha':                rs.get('alpha'),
-            'std_dev':              rs.get('standard_deviation'),
-            'risk':                 risk_from_filter,
-            'risk_rating':          risk_rating,
-            'mean_return':          mean_return,
+                # Risk Metrics
+                'sharpe':               rs.get('sharpe_ratio'),
+                'sortino':              rs.get('sortino_ratio'),
+                'beta':                 rs.get('beta'),
+                'alpha':                rs.get('alpha'),
+                'std_dev':              rs.get('standard_deviation'),
+                'risk':                 risk_from_filter,
+                'risk_rating':          risk_rating,
+                'mean_return':          mean_return,
 
-            # Fund Info
-            'nav':                  nav_from_filter,
-            'expense_ratio':        d.get('expense_ratio'),
-            'groww_rating':         d.get('groww_rating'),
-            'exit_load':            d.get('exit_load'),
-            'benchmark':            d.get('benchmark_name'),
-            'fund_manager':         d.get('fund_manager'),
-            'launch_date':          d.get('launch_date'),
-            'isin':                 d.get('isin'),
-            'min_investment':       min_investment,
-            'min_sip':              min_sip,
-            'lumpsum_allowed':      lumpsum_allowed,
-            'sip_allowed':          sip_allowed,
+                # Fund Info
+                'nav':                  nav_from_filter,
+                'expense_ratio':        d.get('expense_ratio'),
+                'groww_rating':         d.get('groww_rating'),
+                'exit_load':            d.get('exit_load'),
+                'benchmark':            d.get('benchmark_name'),
+                'fund_manager':         d.get('fund_manager'),
+                'launch_date':          d.get('launch_date'),
+                'isin':                 d.get('isin'),
+                'min_investment':       min_investment,
+                'min_sip':              min_sip,
+                'lumpsum_allowed':      lumpsum_allowed,
+                'sip_allowed':          sip_allowed,
 
-            # Analysis
-            'pros':                 [a['analysis_desc'] for a in d.get('analysis', []) if a.get('analysis_type') == 'PROS'],
-            'cons':                 [a['analysis_desc'] for a in d.get('analysis', []) if a.get('analysis_type') == 'CONS'],
+                # Analysis
+                'pros':                 [a['analysis_desc'] for a in d.get('analysis', []) if a.get('analysis_type') == 'PROS'],
+                'cons':                 [a['analysis_desc'] for a in d.get('analysis', []) if a.get('analysis_type') == 'CONS'],
 
-            # Meta
-            'fetchedAt':            start_time.isoformat(),
-            'fetchTimeMs':          elapsed_ms,
-        })
+                # Meta
+                'fetchedAt':            start_time.isoformat(),
+                'fetchTimeMs':          elapsed_ms,
+            }, indent=2),
+            mimetype='application/json'
+        )
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
