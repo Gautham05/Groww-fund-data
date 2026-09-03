@@ -7,6 +7,8 @@ from datetime import datetime, timezone, timedelta
 app = Flask(__name__)
 CORS(app)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+app.json.sort_keys = False
+app.json.indent = 2
 
 GROWW_HEADERS = {
     'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
